@@ -15,6 +15,7 @@ import (
 	"errors"
 	"io"
 	"math/big"
+	"regexp"
 	"strings"
 )
 
@@ -27,6 +28,7 @@ var _ PasswordGenerator = (*Generator)(nil)
 type PasswordGenerator interface {
 	Generate(int, int, int, bool, bool) (string, error)
 	MustGenerate(int, int, int, bool, bool) string
+	GenerateWithPolicy(int, int, int, bool, bool, bool, bool, bool, bool) (string, error)
 }
 
 const (
@@ -127,9 +129,9 @@ func NewGenerator(i *GeneratorInput) (*Generator, error) {
 //
 // The algorithm is fast, but it's not designed to be performant; it favors
 // entropy over speed. This function is safe for concurrent use.
-func (g *Generator) Generate(length, numDigits, numSymbols int, noUpper, allowRepeat bool) (string, error) {
+func (g *Generator) Generate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) (string, error) {
 	letters := g.lowerLetters
-	if !noUpper {
+	if includeUpper {
 		letters += g.upperLetters
 	}
 
@@ -210,27 +212,53 @@ func (g *Generator) Generate(length, numDigits, numSymbols int, noUpper, allowRe
 }
 
 // MustGenerate is the same as Generate, but panics on error.
-func (g *Generator) MustGenerate(length, numDigits, numSymbols int, noUpper, allowRepeat bool) string {
-	res, err := g.Generate(length, numDigits, numSymbols, noUpper, allowRepeat)
+func (g *Generator) MustGenerate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) string {
+	res, err := g.Generate(length, numDigits, numSymbols, includeUpper, allowRepeat)
 	if err != nil {
 		panic(err)
 	}
 	return res
 }
 
+// GenerateWithPolicy is the same as Generate, but ensures result matches specified policy
+func (g *Generator) GenerateWithPolicy(length, numDigits, numSymbols int, includeUpper, allowRepeat, needsLower, needsUpper, needsDigit, needsSymbol bool) (result string, err error) {
+
+	for {
+		result, err = g.Generate(length, numDigits, numSymbols, includeUpper, allowRepeat)
+		if err != nil {
+			return "", err
+		}
+		if isLegalPassword(result, needsLower, needsUpper, needsDigit, needsSymbol) {
+			break
+		}
+	}
+
+	return result, nil
+}
+
 // Generate is the package shortcut for Generator.Generate.
-func Generate(length, numDigits, numSymbols int, noUpper, allowRepeat bool) (string, error) {
+func Generate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) (string, error) {
 	gen, err := NewGenerator(nil)
 	if err != nil {
 		return "", err
 	}
 
-	return gen.Generate(length, numDigits, numSymbols, noUpper, allowRepeat)
+	return gen.Generate(length, numDigits, numSymbols, includeUpper, allowRepeat)
+}
+
+// GenerateWithPolicy is the package shortcut for Generator.GenerateWithPolicy.
+func GenerateWithPolicy(length, numDigits, numSymbols int, includeUpper, allowRepeat, needsLower, needsUpper, needsDigit, needsSymbol bool) (string, error) {
+	gen, err := NewGenerator(nil)
+	if err != nil {
+		return "", err
+	}
+
+	return gen.GenerateWithPolicy(length, numDigits, numSymbols, includeUpper, allowRepeat, needsLower, needsUpper, needsDigit, needsSymbol)
 }
 
 // MustGenerate is the package shortcut for Generator.MustGenerate.
-func MustGenerate(length, numDigits, numSymbols int, noUpper, allowRepeat bool) string {
-	res, err := Generate(length, numDigits, numSymbols, noUpper, allowRepeat)
+func MustGenerate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) string {
+	res, err := Generate(length, numDigits, numSymbols, includeUpper, allowRepeat)
 	if err != nil {
 		panic(err)
 	}
@@ -258,4 +286,45 @@ func randomElement(reader io.Reader, s string) (string, error) {
 		return "", err
 	}
 	return string(s[n.Int64()]), nil
+}
+
+func isLegalPassword(p string, needsLower bool, needsUpper bool, needsDigit bool, needsSymbol bool) bool {
+
+	if needsLower && !containsLower(p) {
+		return false
+	}
+
+	if needsUpper && !containsUpper(p) {
+		return false
+	}
+
+	if needsDigit && !containsDigit(p) {
+		return false
+	}
+
+	if needsSymbol && !containsSymbol(p) {
+		return false
+	}
+
+	return true
+}
+
+func containsLower(s string) bool {
+	r := regexp.MustCompile(".*[[:lower:]].*")
+	return r.MatchString(s)
+}
+
+func containsUpper(s string) bool {
+	r := regexp.MustCompile(".*[[:upper:]].*")
+	return r.MatchString(s)
+}
+
+func containsDigit(s string) bool {
+	r := regexp.MustCompile(".*[[:digit:]].*")
+	return r.MatchString(s)
+}
+
+func containsSymbol(s string) bool {
+	r := regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	return r.MatchString(s)
 }

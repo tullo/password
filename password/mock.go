@@ -30,6 +30,14 @@ func (g *mockGenerator) Generate(int, int, int, bool, bool) (string, error) {
 	return g.result, nil
 }
 
+// Generate returns the mocked result or error.
+func (g *mockGenerator) GenerateWithPolicy(int, int, int, bool, bool, bool, bool, bool, bool) (string, error) {
+	if g.err != nil {
+		return "", g.err
+	}
+	return g.result, nil
+}
+
 // MustGenerate returns the mocked result or panics if an error was given.
 func (g *mockGenerator) MustGenerate(int, int, int, bool, bool) string {
 	if g.err != nil {
