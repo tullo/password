@@ -20,12 +20,12 @@ import (
 )
 
 // Built-time checks that the generators implement the interface.
-var _ PasswordGenerator = (*Generator)(nil)
+var _ Generator = (*StatefulGenerator)(nil)
 
-// PasswordGenerator is an interface that implements the Generate function. This
+// Generator is an interface that implements the Generate function. This
 // is useful for testing where you can pass this interface instead of a real
 // password generator to mock responses for predicability.
-type PasswordGenerator interface {
+type Generator interface {
 	Generate(int, int, int, bool, bool) (string, error)
 	MustGenerate(int, int, int, bool, bool) string
 	GenerateWithPolicy(int, int, int, bool, bool, bool, bool, bool, bool) (string, error)
@@ -63,9 +63,9 @@ var (
 	ErrSymbolsExceedsAvailable = errors.New("number of symbols exceeds available symbols and repeats are not allowed")
 )
 
-// Generator is the stateful generator which can be used to customize the list
+// StatefulGenerator is a generator which can be used to customize the list
 // of letters, digits, and/or symbols.
-type Generator struct {
+type StatefulGenerator struct {
 	lowerLetters string
 	upperLetters string
 	digits       string
@@ -73,7 +73,7 @@ type Generator struct {
 	reader       io.Reader
 }
 
-// GeneratorInput is used as input to the NewGenerator function.
+// GeneratorInput is used as input to the NewStatefulGenerator function.
 type GeneratorInput struct {
 	LowerLetters string
 	UpperLetters string
@@ -82,15 +82,15 @@ type GeneratorInput struct {
 	Reader       io.Reader // rand.Reader by default
 }
 
-// NewGenerator creates a new Generator from the specified configuration. If no
-// input is given, all the default values are used. This function is safe for
-// concurrent use.
-func NewGenerator(i *GeneratorInput) (*Generator, error) {
+// NewStatefulGenerator creates a new StatefulGenerator from the specified
+// configuration. If no input is given, all the default values are used. This
+// function is safe for concurrent use.
+func NewStatefulGenerator(i *GeneratorInput) (*StatefulGenerator, error) {
 	if i == nil {
 		i = new(GeneratorInput)
 	}
 
-	g := &Generator{
+	g := &StatefulGenerator{
 		lowerLetters: i.LowerLetters,
 		upperLetters: i.UpperLetters,
 		digits:       i.Digits,
@@ -129,7 +129,7 @@ func NewGenerator(i *GeneratorInput) (*Generator, error) {
 //
 // The algorithm is fast, but it's not designed to be performant; it favors
 // entropy over speed. This function is safe for concurrent use.
-func (g *Generator) Generate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) (string, error) {
+func (g *StatefulGenerator) Generate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) (string, error) {
 	letters := g.lowerLetters
 	if includeUpper {
 		letters += g.upperLetters
@@ -212,7 +212,7 @@ func (g *Generator) Generate(length, numDigits, numSymbols int, includeUpper, al
 }
 
 // MustGenerate is the same as Generate, but panics on error.
-func (g *Generator) MustGenerate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) string {
+func (g *StatefulGenerator) MustGenerate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) string {
 	res, err := g.Generate(length, numDigits, numSymbols, includeUpper, allowRepeat)
 	if err != nil {
 		panic(err)
@@ -221,7 +221,7 @@ func (g *Generator) MustGenerate(length, numDigits, numSymbols int, includeUpper
 }
 
 // GenerateWithPolicy is the same as Generate, but ensures result matches specified policy
-func (g *Generator) GenerateWithPolicy(length, numDigits, numSymbols int, includeUpper, allowRepeat, needsLower, needsUpper, needsDigit, needsSymbol bool) (result string, err error) {
+func (g *StatefulGenerator) GenerateWithPolicy(length, numDigits, numSymbols int, includeUpper, allowRepeat, needsLower, needsUpper, needsDigit, needsSymbol bool) (result string, err error) {
 
 	for {
 		result, err = g.Generate(length, numDigits, numSymbols, includeUpper, allowRepeat)
@@ -238,7 +238,7 @@ func (g *Generator) GenerateWithPolicy(length, numDigits, numSymbols int, includ
 
 // Generate is the package shortcut for Generator.Generate.
 func Generate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool) (string, error) {
-	gen, err := NewGenerator(nil)
+	gen, err := NewStatefulGenerator(nil)
 	if err != nil {
 		return "", err
 	}
@@ -248,7 +248,7 @@ func Generate(length, numDigits, numSymbols int, includeUpper, allowRepeat bool)
 
 // GenerateWithPolicy is the package shortcut for Generator.GenerateWithPolicy.
 func GenerateWithPolicy(length, numDigits, numSymbols int, includeUpper, allowRepeat, needsLower, needsUpper, needsDigit, needsSymbol bool) (string, error) {
-	gen, err := NewGenerator(nil)
+	gen, err := NewStatefulGenerator(nil)
 	if err != nil {
 		return "", err
 	}

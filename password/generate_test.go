@@ -38,7 +38,7 @@ func testHasDuplicates(tb testing.TB, s string) bool {
 func testGeneratorGenerate(t *testing.T, reader io.Reader) {
 	t.Parallel()
 
-	gen, err := NewGenerator(nil)
+	gen, err := NewStatefulGenerator(nil)
 	if reader != nil {
 		gen.reader = reader
 	}
@@ -137,7 +137,7 @@ func TestGenerator_Reader_Generate(t *testing.T) {
 func testGeneratorGenerateCustom(t *testing.T, reader io.Reader) {
 	t.Parallel()
 
-	gen, err := NewGenerator(&GeneratorInput{
+	gen, err := NewStatefulGenerator(&GeneratorInput{
 		LowerLetters: "abcde",
 		UpperLetters: "ABCDE",
 		Symbols:      "!@#$%",

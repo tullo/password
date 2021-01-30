@@ -1,37 +1,38 @@
 package password
 
 // Built-time checks that the generators implement the interface.
-var _ PasswordGenerator = (*mockGenerator)(nil)
+var _ Generator = (*MockPasswordGenerator)(nil)
 
-type mockGenerator struct {
+// MockPasswordGenerator is a generator that satisfies the Generator interface.
+type MockPasswordGenerator struct {
 	result string
 	err    error
 }
 
-// NewMockGenerator creates a new generator that satisfies the PasswordGenerator
-// interface. If an error is provided, the error is returned. If a result if
-// provided, the result is always returned, regardless of what parameters are
-// passed into the Generate or MustGenerate methods.
+// NewMockPasswordGenerator creates a new mock generator. If an error is
+// provided, the error is returned. If a result if provided, the result is
+// always returned, regardless of what parameters are passed into the Generate
+// or MustGenerate methods.
 //
 // This function is most useful for tests where you want to have predicable
-// results for a transitive resource that depends on go-password.
-func NewMockGenerator(result string, err error) *mockGenerator {
-	return &mockGenerator{
+// results for a transitive resource that depends on the password package.
+func NewMockPasswordGenerator(result string, err error) *MockPasswordGenerator {
+	return &MockPasswordGenerator{
 		result: result,
 		err:    err,
 	}
 }
 
 // Generate returns the mocked result or error.
-func (g *mockGenerator) Generate(int, int, int, bool, bool) (string, error) {
+func (g *MockPasswordGenerator) Generate(int, int, int, bool, bool) (string, error) {
 	if g.err != nil {
 		return "", g.err
 	}
 	return g.result, nil
 }
 
-// Generate returns the mocked result or error.
-func (g *mockGenerator) GenerateWithPolicy(int, int, int, bool, bool, bool, bool, bool, bool) (string, error) {
+// GenerateWithPolicy returns the mocked result or error.
+func (g *MockPasswordGenerator) GenerateWithPolicy(int, int, int, bool, bool, bool, bool, bool, bool) (string, error) {
 	if g.err != nil {
 		return "", g.err
 	}
@@ -39,7 +40,7 @@ func (g *mockGenerator) GenerateWithPolicy(int, int, int, bool, bool, bool, bool
 }
 
 // MustGenerate returns the mocked result or panics if an error was given.
-func (g *mockGenerator) MustGenerate(int, int, int, bool, bool) string {
+func (g *MockPasswordGenerator) MustGenerate(int, int, int, bool, bool) string {
 	if g.err != nil {
 		panic(g.err)
 	}

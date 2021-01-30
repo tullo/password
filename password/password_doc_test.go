@@ -21,8 +21,8 @@ func ExampleMustGenerate() {
 	log.Print(res)
 }
 
-func ExampleGenerator_Generate() {
-	gen, err := password.NewGenerator(nil)
+func ExampleStatefulGenerator_Generate() {
+	gen, err := password.NewStatefulGenerator(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,10 +34,10 @@ func ExampleGenerator_Generate() {
 	log.Print(res)
 }
 
-func ExampleNewGenerator_nil() {
-	// This is exactly the same as calling "Generate" directly. It will use all
-	// the default values.
-	gen, err := password.NewGenerator(nil)
+func ExampleNewStatefulGenerator_nil() {
+	// This is exactly the same as calling "Generate" directly.
+	// It will use all the default values.
+	gen, err := password.NewStatefulGenerator(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,9 +45,9 @@ func ExampleNewGenerator_nil() {
 	_ = gen // gen.Generate(...)
 }
 
-func ExampleNewGenerator_custom() {
+func ExampleNewStatefulGenerator_custom() {
 	// Customize the list of symbols.
-	gen, err := password.NewGenerator(&password.GeneratorInput{
+	gen, err := password.NewStatefulGenerator(&password.GeneratorInput{
 		Symbols: "!@#$%^()",
 	})
 	if err != nil {
@@ -57,16 +57,16 @@ func ExampleNewGenerator_custom() {
 	_ = gen // gen.Generate(...)
 }
 
-func ExampleNewMockGenerator_testing() {
-	// Accept a password.PasswordGenerator interface instead of a
+func ExampleNewMockPasswordGenerator_testing() {
+	// Accept a password.Generator interface instead of a
 	// password.Generator struct.
-	f := func(g password.PasswordGenerator) string {
+	f := func(g password.Generator) string {
 		// These values don't matter
 		return g.MustGenerate(1, 2, 3, false, false)
 	}
 
 	// In tests
-	gen := password.NewMockGenerator("canned-response", nil)
+	gen := password.NewMockPasswordGenerator("canned-response", nil)
 
 	fmt.Print(f(gen))
 	// Output: canned-response
