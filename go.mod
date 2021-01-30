@@ -1,3 +1,3 @@
-module github.com/rgee0/go-password
+module github.com/tullo/password
 
-go 1.14
+go 1.15

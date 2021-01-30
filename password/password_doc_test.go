@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/rgee0/go-password/password"
+	"github.com/tullo/password/password"
 )
 
 func ExampleGenerate() {
