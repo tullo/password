@@ -49,7 +49,7 @@ func main() {
 }
 ```
 
-See the [GoDoc](https://godoc.org/github.com/tullo/password) for more
+See the [GoDoc](https://pkg.go.dev/github.com/tullo/password) for more
 information.
 
 ## Testing
