@@ -1,7 +1,7 @@
 ## Golang Password Generator
 
-[![GoDoc](https://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://pkg.go.dev/github.com/sethvargo/go-password/password)
-[![GitHub Actions](https://img.shields.io/github/workflow/status/sethvargo/go-password/Test?style=flat-square)](https://github.com/sethvargo/go-password/actions?query=workflow%3ATest)
+[![GoDoc](https://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://pkg.go.dev/github.com/tullo/password/password)
+[![GitHub Actions](https://img.shields.io/github/workflow/status/tullo/password/Test?style=flat-square)](https://github.com/tullo/password/actions?query=workflow%3ATest)
 
 This library implements generation of random passwords with provided
 requirements as described by  [AgileBits
@@ -24,7 +24,7 @@ wpvbxlsc
 ## Installation
 
 ```sh
-$ go get -u github.com/sethvargo/go-password/password
+$ go get -u github.com/tullo/password/password
 ```
 
 ## Usage
@@ -35,7 +35,7 @@ package main
 import (
   "log"
 
-  "github.com/sethvargo/go-password/password"
+  "github.com/tullo/password/password"
 )
 
 func main() {
@@ -49,17 +49,17 @@ func main() {
 }
 ```
 
-See the [GoDoc](https://godoc.org/github.com/sethvargo/go-password) for more
+See the [GoDoc](https://godoc.org/github.com/tullo/password) for more
 information.
 
 ## Testing
 
-For testing purposes, instead of accepted a `*password.Generator` struct, accept
-a `password.PasswordGenerator` interface:
+For testing purposes, instead of accepting a `*password.StatefulGenerator`
+struct, accept a `password.Generator` interface:
 
 ```go
 // func MyFunc(p *password.Generator)
-func MyFunc(p password.PasswordGenerator) {
+func MyFunc(p password.Generator) {
   // ...
 }
 ```
@@ -68,7 +68,7 @@ Then, in tests, use a mocked password generator with stubbed data:
 
 ```go
 func TestMyFunc(t *testing.T) {
-  gen := password.NewMockGenerator("canned-response", false)
+  gen := password.NewMockPasswordGenerator("canned-response", false)
   MyFunc(gen)
 }
 ```
